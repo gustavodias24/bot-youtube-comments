@@ -1,9 +1,6 @@
 from colorama import Fore, Back, Style
-from undetected_chromedriver import Chrome
-from webdriver_manager.chrome import ChromeDriverManager
 from process.AddLoginClasse import Login
-from utils.LoadingClass import Loader
-import threading
+from process.InitBot import StartBot
 from time import sleep
 import os
 
@@ -60,7 +57,8 @@ def main():
                 for cont in accountsFile.readlines():
                     mailSenha = cont.split(",")
                     selecionado = Fore.CYAN + " ( SELECIONADO )" if int(contSelec) == int(contAtual) else ""
-                    print(Style.RESET_ALL + Fore.YELLOW + f"[ {contSelec} ] " + Fore.YELLOW + Style.BRIGHT + mailSenha[0] + selecionado)
+                    print(Style.RESET_ALL + Fore.YELLOW + f"[ {contSelec} ] " + Fore.YELLOW + Style.BRIGHT + mailSenha[
+                        0] + selecionado)
                     contSelec += 1
                 print(Style.RESET_ALL + Fore.YELLOW + f"[ 00 ] " + Fore.YELLOW + Style.BRIGHT + "Sair ")
 
@@ -89,33 +87,24 @@ def main():
             main()
 
     elif response == 2:
-        pass
+        StartBot(extraOpc=True).clearDB()
+        print(Fore.BLUE + Back.YELLOW + Style.BRIGHT + " Database limpo " + Back.RESET)
+        sleep(1)
+        main()
     elif response == 3:
-        pass
+
+        with open("./percistence/config.txt", "r") as fileConfig:
+            with open("./percistence/accounts.txt", "r") as fileAccounts:
+                datas = fileAccounts.readlines()[int(fileConfig.read()) - 1].replace("\n", "").split(",")
+
+        StartBot(datas[0], datas[1]).startAllProcess()
+
     elif response == 0:
         print(Fore.RED + Style.BRIGHT + " bye! ")
     else:
         print(Fore.BLUE + Back.YELLOW + Style.BRIGHT + " Comando inválido " + Back.RESET)
         sleep(1)
         main()
-
-    # nav = Chrome(driver_executable_path=ChromeDriverManager().install())
-    #
-    # nav.get("https://accounts.google.com/")
-
-    # def processo():
-    #     finalizar = False
-    #     while not finalizar:
-    #         finalizar = input("finalizar? ")
-    #     nav.close()
-    #
-    #
-    # the_process = threading.Thread(name='process', target=processo)
-    #
-    # the_process.start()
-    #
-    # while the_process.is_alive():
-    #     Loader().animated_loading()
 
 
 if __name__ == "__main__":
