@@ -1,12 +1,16 @@
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from undetected_chromedriver import Chrome
-from time import sleep
-from utils.LoadingClass import Loader
-from pymongo import MongoClient
 import threading
+from time import sleep
+
+from pymongo import MongoClient
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from undetected_chromedriver import Chrome
+from webdriver_manager.chrome import ChromeDriverManager
+from decouple import config
+from bson.objectid import ObjectId
+
+from utils.LoadingClass import Loader
 
 
 # def processo():
@@ -25,8 +29,7 @@ import threading
 
 class StartBot:
     def __init__(self, mail="", senha="", extraOpc=False):
-        client = MongoClient(
-            "mongodb+srv://benicio:84048010233@cluster0.4ujdozl.mongodb.net/?retryWrites=true&w=majority")
+        client = MongoClient(config("MONGO_URI"))
         self.db = client.dbAppBotYt
         self.col = self.db.channels
 
@@ -34,6 +37,7 @@ class StartBot:
             self.mail = mail
             self.senha = senha
             self.nav = Chrome(driver_executable_path=ChromeDriverManager().install())
+            self.nav.implicitly_wait(0.8)
 
     def verifyXpath(self, xpath, needLimit=False):
         """
@@ -77,7 +81,6 @@ class StartBot:
 
     def startLogin(self):
 
-        self.nav.implicitly_wait(.7)
         self.nav.get("https://accounts.google.com/")
 
         if self.verifyXpath('//*[@id="af-error-container"]/p[1]/b', True):
@@ -102,11 +105,49 @@ class StartBot:
     def clearDB(self):
         self.col.delete_many({})
 
+    def checkCommentsRecent(self):
+        nScroll = 600
+        self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
+        while True:
+            try:
+                self.nav.find_element(By.XPATH, '//*[@id="icon-label"]').click()
+                self.nav.find_element(By.XPATH,
+                                      '//*[@id="menu"]/a[2]/tp-yt-paper-item/tp-yt-paper-item-body/div[1]').click()
+                break
+            except NoSuchElementException:
+                sleep(1.5)
+                nScroll += 100
+                self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
+            except ElementNotInteractableException:
+                sleep(1.5)
+
+    def toDown(self):
+        self.nav.execute_script("window.scrollTo(0,999999)")
+        sleep(1.5)
+
     def searchChannels(self):
         with open("./percistence/videoExtract.txt", "r") as fileExtract:
-            for videoUrl in fileExtract.readlines():
-                self.nav.get(videoUrl)
-                pass
+            self.nav.get(fileExtract.read())
+
+            self.verifyXpath('//*[@id="icon-label"]')
+            self.checkCommentsRecent()
+
+            maxChannel = config("MAX_CHANNEL_LIMIT", default=100)
+
+            while True:
+                try:
+                    canais = self.nav.find_elements(By.ID, 'author-text')
+                    if len(canais) == maxChannel:
+                        break
+                    sleep(2)
+                    self.toDown()
+                except NoSuchElementException:
+                    sleep(1)
+
+            for canal in canais:
+                if not self.col.find_one({"url": canal.get_attribute('href')}):
+                    self.col.insert_one({"_id": str(ObjectId()), "url": canal.get_attribute('href')})
+                    print(canal.get_attribute('href'))
 
     def startAllProcess(self):
         self.loadingScreen(" Iniciando Login ", self.startLogin)
