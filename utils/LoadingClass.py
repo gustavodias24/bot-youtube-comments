@@ -10,7 +10,7 @@ class Loader:
 
     def animated_loading(self):
         for step in self.steps:
-            sys.stdout.write(Style.RESET_ALL + Fore.BLUE + Style.BRIGHT + '\r' + f'{self.text}...' + step)
+            sys.stdout.write(Style.RESET_ALL + Fore.BLUE + Style.BRIGHT + '\r' + f'{self.text}... ' + step)
 
             time.sleep(.1)
             sys.stdout.flush()

@@ -2,13 +2,15 @@ import threading
 from time import sleep
 
 from pymongo import MongoClient
-from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException, \
+    ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from undetected_chromedriver import Chrome
 from webdriver_manager.chrome import ChromeDriverManager
 from decouple import config
 from bson.objectid import ObjectId
+from random import randint
 
 from utils.LoadingClass import Loader
 
@@ -37,7 +39,8 @@ class StartBot:
             self.mail = mail
             self.senha = senha
             self.nav = Chrome(driver_executable_path=ChromeDriverManager().install())
-            self.nav.implicitly_wait(0.8)
+            self.nav.implicitly_wait(1)
+            self.channelSend = []
 
     def verifyXpath(self, xpath, needLimit=False):
         """
@@ -126,29 +129,155 @@ class StartBot:
         sleep(1.5)
 
     def searchChannels(self):
-        with open("./percistence/videoExtract.txt", "r") as fileExtract:
-            self.nav.get(fileExtract.read())
+        self.nav.get(config("VIDEO"))
+        sleep(2.5)
+        self.checkCommentsRecent()
 
-            self.verifyXpath('//*[@id="icon-label"]')
-            self.checkCommentsRecent()
+        maxChannel = int(config("MAX_CHANNEL_LIMIT", default=100))
 
-            maxChannel = config("MAX_CHANNEL_LIMIT", default=100)
+        channelSend = []
 
-            while True:
+        while True:
+            try:
+                canais = self.nav.find_elements(By.ID, 'author-text')
+
+                for canal in canais:
+                    try:
+                        if not self.col.find_one({"url": canal.get_attribute('href')}):
+                            self.col.insert_one({"_id": str(ObjectId()), "url": canal.get_attribute('href')})
+                            channelSend.append(canal.get_attribute('href'))
+                    except:
+                        sleep(0.1)
+
+                if len(channelSend) >= maxChannel:
+                    break
+                sleep(.8)
+                self.toDown()
+            except NoSuchElementException:
+                sleep(1)
+
+        # self.channelSend = channelSend
+        self.channelSend = ['https://www.youtube.com/channel/UCuQb-9ojKjNrvOTzd6vmkYg', 'https://www.youtube.com/channel/UCBueq1y5wvdwgdve0UekhZg',
+                            'https://www.youtube.com/@cauatrindade1817', 'https://www.youtube.com/@user-ts2wm8gk1v']
+
+    def executComment(self):
+        nScroll = 600
+
+        sleep(1.4)
+        self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
+        """ Esse limite simplemente quando o bt de comentário não existir nos shorts - raro - """
+        limt = 5
+
+        while True:
+            try:
+                self.nav.find_element(By.ID, 'comments-button').click()
+                self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').click()
+                self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').send_keys("oi tudo bem?")
+                # self.nav.find_element(By.ID,'submit-button').click()
+                break
+            except NoSuchElementException or ElementNotInteractableException:
                 try:
-                    canais = self.nav.find_elements(By.ID, 'author-text')
-                    if len(canais) == maxChannel:
+                    self.nav.find_element(By.ID, 'simplebox-placeholder').click()
+                    sleep(0.5)
+                    self.nav.find_element(By.ID, 'contenteditable-root').send_keys("oi tudo bem?")
+                    # self.nav.find_element(By.ID,'submit-button').click()
+                    break
+                except NoSuchElementException or ElementNotInteractableException:
+                    """ quando nao tem comentario ativado """
+                    try:
+                        self.nav.find_element(By.XPATH, '//*[@id="message"]/span')
                         break
-                    sleep(2)
-                    self.toDown()
-                except NoSuchElementException:
+                    except NoSuchElementException:
+                        try:
+                            """ pop up do nada interrompedo clicar '-'"""
+                            self.nav.find_element(By.XPATH, '//*[@id="button"]/yt-icon').click()
+                        except NoSuchElementException or ElementNotInteractableException:
+                            sleep(1.5)
+                            nScroll += 50
+                            self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
+
+            except ElementNotInteractableException:
+                limt -= 1
+                print(f"Limiter = {limt}")
+                if limt < 0:
+                    break
+                sleep(0.7)
+
+        # while True:
+        #     try:
+        #         try:
+        #             place_holder = self.nav.find_element(By.XPATH, '//*[@id="simplebox-placeholder"]')
+        #             place_holder.click()
+        #         except NoSuchElementException:
+        #             print("nao achou coment normal")
+        #             try:
+        #                 self.nav.find_elements(By.XPATH, '//*[@id="button"]/yt-icon')[25].click()
+        #                 print("nao achou coment short")
+        #             except NoSuchElementException or ElementClickInterceptedException:
+        #                 try:
+        #                     self.nav.find_element(By.XPATH, '//*[@id="comments-button"]/ytd-button-renderer')
+        #                     break
+        #                 except NoSuchElementException or ElementClickInterceptedException:
+        #                     print("nao achou sem coment short")
+        #                     sleep(1)
+        #
+        #             except IndexError:
+        #                 print("index erro")
+        #                 sleep(1)
+        #         except ElementClickInterceptedException:
+        #             try:
+        #                 """ pop up do nada interrompedo clicar '-'"""
+        #                 self.nav.find_element(By.XPATH, '//*[@id="button"]/yt-icon').click()
+        #             except NoSuchElementException:
+        #                 print("essa bct aquii")
+        #                 sleep(1)
+        #
+        #         try:
+        #             self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').click()
+        #             self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').send_keys("oi tudo bem?")
+        #             # self.nav.find_element(By.XPATH,'//*[@id="submit-button"]/yt-button-shape/button/yt-touch-feedback-shape/div').click()
+        #             break
+        #         except NoSuchElementException:
+        #             sleep(1.5)
+        #             nScroll += 50
+        #             self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
+        #     except NoSuchElementException:
+        #         sleep(1.5)
+        #         nScroll += 50
+        #         self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
+        #     except ElementNotInteractableException:
+        #         try:
+        #             self.nav.find_element(By.XPATH, '//*[@id="message"]/span')
+        #             break
+        #         except NoSuchElementException:
+        #             sleep(1.5)
+        #             nScroll += 50
+        #             self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
+
+        sleep(randint(60, 120))
+
+    def comentInChannels(self):
+        """
+            Entra no canal clica na aba vídeos e seleciona o primeiro um vídeo
+        """
+        for channelLink in self.channelSend:
+            self.nav.get(channelLink)
+
+            self.verifyXpath('//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div')
+            self.nav.find_element(By.XPATH, '//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div').click()
+
+            try:
+                sleep(1.5)
+                try:
+                    self.nav.find_element(By.XPATH, '//*[@id="video-title"]').click()
+                    self.executComment()
+                except:
                     sleep(1)
 
-            for canal in canais:
-                if not self.col.find_one({"url": canal.get_attribute('href')}):
-                    self.col.insert_one({"_id": str(ObjectId()), "url": canal.get_attribute('href')})
-                    print(canal.get_attribute('href'))
+            except NoSuchElementException or ElementNotInteractableException:
+                sleep(0.1)
 
     def startAllProcess(self):
-        self.loadingScreen(" Iniciando Login ", self.startLogin)
-        self.loadingScreen(" Buscando canais ", self.searchChannels)
+        self.loadingScreen(" Iniciando Login", self.startLogin)
+        self.loadingScreen(" Buscando canais", self.searchChannels)
+        self.loadingScreen(" Comentando nos canais", self.comentInChannels)

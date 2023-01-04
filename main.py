@@ -12,6 +12,7 @@ def main():
     print(Style.RESET_ALL + Fore.YELLOW + " [ 01 ]" + Fore.BLUE + " Opções de login ")
     print(Fore.YELLOW + " [ 02 ]" + Fore.BLUE + " Limpar database. ")
     print(Fore.YELLOW + " [ 03 ]" + Fore.BLUE + " Iniciar bot. ")
+    print(Fore.YELLOW + " [ 04 ]" + Fore.BLUE + " Auto execução. ")
     print(Fore.YELLOW + " [ 00 ]" + Fore.BLUE + " sair. ")
 
     try:
@@ -98,6 +99,7 @@ def main():
                 datas = fileAccounts.readlines()[int(fileConfig.read()) - 1].replace("\n", "").split(",")
 
         StartBot(datas[0], datas[1]).startAllProcess()
+        main()
 
     elif response == 0:
         print(Fore.RED + Style.BRIGHT + " bye! ")
