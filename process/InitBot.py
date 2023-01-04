@@ -13,6 +13,7 @@ from random import randint
 
 from utils.LoadingClass import Loader
 
+
 class StartBot:
     def __init__(self, mail="", senha="", extraOpc=False):
         client = MongoClient(config("MONGO_URI"))
@@ -142,30 +143,31 @@ class StartBot:
 
         self.channelSend = channelSend
 
-    def executComment(self):
+    def executComment(self, comments):
+
+        sleep(randint(45, 85))
+
         nScroll = 600
-
-        with open("./percistence/comments.txt", encoding="utf-8") as file_coment:
-            comment = file_coment.read().split("/")[randint(0, (len(file_coment.read()) - 1))]
-
+        comment = comments[randint(0, len(comments) - 1)]
         sleep(1.4)
         self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
         """ Esse limite simplemente quando o bt de comentário não existir nos shorts - raro - """
         limt = 5
 
         while True:
+
             try:
                 self.nav.find_element(By.ID, 'comments-button').click()
                 self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').click()
                 self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').send_keys(comment)
-                self.nav.find_element(By.ID,'submit-button').click()
+                self.nav.find_element(By.ID, 'submit-button').click()
                 break
             except NoSuchElementException or ElementNotInteractableException:
                 try:
                     self.nav.find_element(By.ID, 'simplebox-placeholder').click()
                     sleep(0.5)
                     self.nav.find_element(By.ID, 'contenteditable-root').send_keys(comment)
-                    self.nav.find_element(By.ID,'submit-button').click()
+                    self.nav.find_element(By.ID, 'submit-button').click()
                     break
                 except NoSuchElementException or ElementNotInteractableException:
                     """ quando nao tem comentario ativado """
@@ -186,8 +188,7 @@ class StartBot:
                 if limt < 0:
                     break
                 sleep(0.7)
-
-        sleep(randint(60, 120))
+        sleep(3.5)
 
     def comentInChannels(self):
         """
@@ -199,16 +200,30 @@ class StartBot:
             self.verifyXpath('//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div')
             self.nav.find_element(By.XPATH, '//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div').click()
 
-            try:
-                sleep(1.5)
-                try:
-                    self.nav.find_element(By.XPATH, '//*[@id="video-title"]').click()
-                    self.executComment()
-                except:
-                    sleep(1)
+            with open("./percistence/comments.txt", encoding="utf-8") as file_comment:
+                comments = file_comment.read().split('/')
 
-            except NoSuchElementException or ElementNotInteractableException:
-                sleep(0.1)
+            otherLimit = 5
+
+            while True:
+
+                if otherLimit <= 0:
+                    break
+
+                try:
+                    sleep(1.5)
+                    try:
+                        self.nav.find_element(By.XPATH, '//*[@id="video-title"]').click()
+
+                        self.executComment(comments)
+                        break
+                    except Exception as err:
+                        otherLimit -= 1
+                        sleep(1)
+
+                except NoSuchElementException or ElementNotInteractableException:
+                    otherLimit -= 1
+                    sleep(1)
 
     def startAllProcess(self):
         self.loadingScreen(" Iniciando Login", self.startLogin)
