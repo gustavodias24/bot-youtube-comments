@@ -2,13 +2,15 @@ from colorama import Fore, Back, Style
 from process.AddLoginClasse import Login
 from process.InitBot import StartBot
 from time import sleep
+from decouple import config
 import os
 
 
 def main():
-    command = "cls"
+    command = "clear" if not config("IS_LINUX") else "cls"
+
     os.system(command)
-    print(Style.BRIGHT + Fore.WHITE + Back.RED + " Menu de escolhas: ")
+    print(Style.BRIGHT + Fore.WHITE + Back.RED + " Menu de escolhas v1: ")
     print(Style.RESET_ALL + Fore.YELLOW + " [ 01 ]" + Fore.BLUE + " Opções de login ")
     print(Fore.YELLOW + " [ 02 ]" + Fore.BLUE + " Limpar database. ")
     print(Fore.YELLOW + " [ 03 ]" + Fore.BLUE + " Iniciar bot. ")
@@ -61,7 +63,7 @@ def main():
                     print(Style.RESET_ALL + Fore.YELLOW + f"[ {contSelec} ] " + Fore.YELLOW + Style.BRIGHT + mailSenha[
                         0] + selecionado)
                     contSelec += 1
-                print(Style.RESET_ALL + Fore.YELLOW + f"[ 00 ] " + Fore.YELLOW + Style.BRIGHT + "Sair ")
+                print(Style.RESET_ALL + Fore.YELLOW + f"[ 0 ] " + Fore.YELLOW + Style.BRIGHT + "Sair ")
 
                 try:
                     response = int(input(Fore.RED + Style.BRIGHT + " Sua opção: "))

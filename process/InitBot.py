@@ -2,8 +2,7 @@ import threading
 from time import sleep
 
 from pymongo import MongoClient
-from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException, \
-    ElementClickInterceptedException
+from selenium.common.exceptions import NoSuchElementException, ElementNotInteractableException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from undetected_chromedriver import Chrome
@@ -13,21 +12,6 @@ from bson.objectid import ObjectId
 from random import randint
 
 from utils.LoadingClass import Loader
-
-
-# def processo():
-#     finalizar = False
-#     while not finalizar:
-#         finalizar = input("finalizar? ")
-#     nav.close()
-#
-#
-# the_process = threading.Thread(name='process', target=processo)
-#
-# the_process.start()
-#
-# while the_process.is_alive():
-#     Loader().animated_loading()
 
 class StartBot:
     def __init__(self, mail="", senha="", extraOpc=False):
@@ -156,12 +140,13 @@ class StartBot:
             except NoSuchElementException:
                 sleep(1)
 
-        # self.channelSend = channelSend
-        self.channelSend = ['https://www.youtube.com/channel/UCuQb-9ojKjNrvOTzd6vmkYg', 'https://www.youtube.com/channel/UCBueq1y5wvdwgdve0UekhZg',
-                            'https://www.youtube.com/@cauatrindade1817', 'https://www.youtube.com/@user-ts2wm8gk1v']
+        self.channelSend = channelSend
 
     def executComment(self):
         nScroll = 600
+
+        with open("./percistence/comments.txt", encoding="utf-8") as file_coment:
+            comment = file_coment.read().split("/")[randint(0, (len(file_coment.read()) - 1))]
 
         sleep(1.4)
         self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
@@ -172,15 +157,15 @@ class StartBot:
             try:
                 self.nav.find_element(By.ID, 'comments-button').click()
                 self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').click()
-                self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').send_keys("oi tudo bem?")
-                # self.nav.find_element(By.ID,'submit-button').click()
+                self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').send_keys(comment)
+                self.nav.find_element(By.ID,'submit-button').click()
                 break
             except NoSuchElementException or ElementNotInteractableException:
                 try:
                     self.nav.find_element(By.ID, 'simplebox-placeholder').click()
                     sleep(0.5)
-                    self.nav.find_element(By.ID, 'contenteditable-root').send_keys("oi tudo bem?")
-                    # self.nav.find_element(By.ID,'submit-button').click()
+                    self.nav.find_element(By.ID, 'contenteditable-root').send_keys(comment)
+                    self.nav.find_element(By.ID,'submit-button').click()
                     break
                 except NoSuchElementException or ElementNotInteractableException:
                     """ quando nao tem comentario ativado """
@@ -198,61 +183,9 @@ class StartBot:
 
             except ElementNotInteractableException:
                 limt -= 1
-                print(f"Limiter = {limt}")
                 if limt < 0:
                     break
                 sleep(0.7)
-
-        # while True:
-        #     try:
-        #         try:
-        #             place_holder = self.nav.find_element(By.XPATH, '//*[@id="simplebox-placeholder"]')
-        #             place_holder.click()
-        #         except NoSuchElementException:
-        #             print("nao achou coment normal")
-        #             try:
-        #                 self.nav.find_elements(By.XPATH, '//*[@id="button"]/yt-icon')[25].click()
-        #                 print("nao achou coment short")
-        #             except NoSuchElementException or ElementClickInterceptedException:
-        #                 try:
-        #                     self.nav.find_element(By.XPATH, '//*[@id="comments-button"]/ytd-button-renderer')
-        #                     break
-        #                 except NoSuchElementException or ElementClickInterceptedException:
-        #                     print("nao achou sem coment short")
-        #                     sleep(1)
-        #
-        #             except IndexError:
-        #                 print("index erro")
-        #                 sleep(1)
-        #         except ElementClickInterceptedException:
-        #             try:
-        #                 """ pop up do nada interrompedo clicar '-'"""
-        #                 self.nav.find_element(By.XPATH, '//*[@id="button"]/yt-icon').click()
-        #             except NoSuchElementException:
-        #                 print("essa bct aquii")
-        #                 sleep(1)
-        #
-        #         try:
-        #             self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').click()
-        #             self.nav.find_element(By.XPATH, '//*[@id="contenteditable-root"]').send_keys("oi tudo bem?")
-        #             # self.nav.find_element(By.XPATH,'//*[@id="submit-button"]/yt-button-shape/button/yt-touch-feedback-shape/div').click()
-        #             break
-        #         except NoSuchElementException:
-        #             sleep(1.5)
-        #             nScroll += 50
-        #             self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
-        #     except NoSuchElementException:
-        #         sleep(1.5)
-        #         nScroll += 50
-        #         self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
-        #     except ElementNotInteractableException:
-        #         try:
-        #             self.nav.find_element(By.XPATH, '//*[@id="message"]/span')
-        #             break
-        #         except NoSuchElementException:
-        #             sleep(1.5)
-        #             nScroll += 50
-        #             self.nav.execute_script(f"window.scrollTo(0,{nScroll})")
 
         sleep(randint(60, 120))
 
