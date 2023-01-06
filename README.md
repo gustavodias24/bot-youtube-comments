@@ -22,6 +22,6 @@ IS_LINUX={False ou True}
 python main.py
 ```
   
-<p>Vai exibir uma interface parecida com esse: </p>
-  
+<p>Vai exibir uma interface parecida com essa: </p>
+  <br/>
  <img src="https://raw.githubusercontent.com/gustavodias24/bot-youtube-comments/master/telaAtual.PNG" alt="image-interface" /> 
