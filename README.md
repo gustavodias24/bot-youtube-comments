@@ -15,3 +15,13 @@ MAX_CHANNEL_LIMIT={LIMITE POR RODADA}
 VIDEO={VIDOE PRA EXTRAIR OS CANAIS}
 IS_LINUX={False ou True}
 ```
+
+<h3>Passo - 3: Instale todos os requerimentos e execute a aplicação
+  
+```
+python main.py
+```
+  
+<p>Vai exibir uma interface parecida com esse: </p>
+  
+ <img src="https://raw.githubusercontent.com/gustavodias24/bot-youtube-comments/master/telaAtual.PNG" alt="image-interface" /> 
