@@ -10,6 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from decouple import config
 from bson.objectid import ObjectId
 from random import randint
+from selenium import webdriver
 
 from utils.LoadingClass import Loader
 
@@ -194,6 +195,9 @@ class StartBot:
         """
             Entra no canal clica na aba vídeos e seleciona o primeiro um vídeo
         """
+
+        maxRequest = 0
+
         for channelLink in self.channelSend:
             self.nav.get(channelLink)
 
@@ -201,7 +205,7 @@ class StartBot:
             self.nav.find_element(By.XPATH, '//*[@id="tabsContent"]/tp-yt-paper-tab[2]/div').click()
 
             with open("./percistence/comments.txt", encoding="utf-8") as file_comment:
-                comments = file_comment.read().split('/')
+                comments = file_comment.read().split('penes')
 
             otherLimit = 5
 
@@ -224,8 +228,14 @@ class StartBot:
                 except NoSuchElementException or ElementNotInteractableException:
                     otherLimit -= 1
                     sleep(1)
+            maxRequest += 1
+            if maxRequest >= 10:
+                sleep(600)
+                maxRequest = 0
+
 
     def startAllProcess(self):
         self.loadingScreen(" Iniciando Login", self.startLogin)
         self.loadingScreen(" Buscando canais", self.searchChannels)
         self.loadingScreen(" Comentando nos canais", self.comentInChannels)
+        self.nav.close()
