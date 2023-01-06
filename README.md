@@ -7,3 +7,10 @@
 ```
 git clone --branch master https://github.com/gustavodias24/bot-youtube-comments.git
 ```
+<h3>Passo - 2: Configure o arquvio .env</h3>
+```
+MONGO_URI={URL DO DATABASE}
+MAX_CHANNEL_LIMIT={LIMITE POR RODADA}
+VIDEO={VIDOE PRA EXTRAIR OS CANAIS}
+IS_LINUX={False ou True}
+```
