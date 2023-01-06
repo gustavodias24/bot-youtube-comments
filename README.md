@@ -4,5 +4,6 @@
 <h2>Mini-tutorial...</h2>
 <h3>Passo - 1: Clone o repositório</h3>
 
-```git clone --branch master https://github.com/gustavodias24/bot-youtube-comments.git
+```
+git clone --branch master https://github.com/gustavodias24/bot-youtube-comments.git
 ```
